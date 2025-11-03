@@ -28,8 +28,8 @@ jobs:
  #       run: docker network create monitoring || true
 
       - name: Run Docker containers
-        run: docker-compose -f docker-compose.yml up -
-d
+        run: docker-compose -f docker-compose.yml up -d
+
       - name: List running containers
         run: docker ps -a
 
