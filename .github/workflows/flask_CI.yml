@@ -1,0 +1,37 @@
+name: CI Build Monitor
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Build Docker images
+        run: docker-compose -f docker-compose.yml build
+
+#      - name: Create monitoring network
+ #       run: docker network create monitoring || true
+
+      - name: Run Docker containers
+        run: docker-compose -f docker-compose.yml up -
+d
+      - name: List running containers
+        run: docker ps -a
+
+      - name: stop and clean
+        run: docker-compose -f docker-compose.yml down
