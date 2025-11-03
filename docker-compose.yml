@@ -1,0 +1,49 @@
+#version: "3.8"
+services:
+  backend_ap:
+    build: ./backend
+    container_name: backend_ap
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/appdb
+    restart: unless-stopped
+    #networks:
+     # - monitoring
+
+  frontend_ap:
+    build: ./frontend
+    container_name: frontend_ap
+    ports:
+      - "3001:80"
+    #environment:
+    #  - REACT_APP_API_URL=http://backend_ap:5000
+    depends_on:
+      - backend_ap
+    restart: unless-stopped
+    #networks:
+    #  - monitoring
+
+  db:
+    image: postgres:15
+    container_name: flask_app_db
+    restart: always
+    environment:
+      POSTGRES_DB: flask_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  #  networks:
+    #  - monitoring
+
+volumes:
+  postgres_data:
+
+#networks:
+ # monitoring:
+  #  external: true
