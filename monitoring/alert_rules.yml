@@ -1,0 +1,37 @@
+# monitoring/alert_rules.yml
+groups:
+- name: ci_alerts
+  rules:
+  - alert: CIBuildFailed
+    expr: ci_build_status{branch="main"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "CI/CD build failed on main"
+      description: "Build failed for repo {{ $labels.repository }}"
+  - alert: HighContainerCPU
+    expr: rate(container_cpu_usage_seconds_total[5m]) > 0.8
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container cpu using > 80% CPU"
+      description: "Check container {{ $labels.name }} high cpu usage"
+  - alert: containerStopped
+    expr: up{job="cadvisor"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "container down"
+      description: "some container is not running"
+
+  - alert: BackendDown
+    expr: up{job="backend_api"} == 0
+    for: 15s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Backend API is down"
+      description: "Prometheus cannot reach backend_api container"

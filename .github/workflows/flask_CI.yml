@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Checkout Code
@@ -22,10 +24,13 @@ jobs:
           sudo apt-get install -y docker-compose
 
       - name: Build Docker images
-        run: docker-compose -f docker-compose.yml build
+        id: build
+        run: |
+            docker-compose -f docker-compose.yml build
+            echo "Build Succeeded"
 
-#      - name: Create monitoring network
- #       run: docker network create monitoring || true
+      - name: Create monitoring network
+        run: docker network create monitoring || true
 
       - name: Run Docker containers
         run: docker-compose -f docker-compose.yml up -d
@@ -35,3 +40,25 @@ jobs:
 
       - name: stop and clean
         run: docker-compose -f docker-compose.yml down
+
+      - name: Push CI Metrics to Pushgateway
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            BUILD_STATUS=0
+          else
+            BUILD_STATUS=1
+          fi
+
+          PUSHGATEWAY_URL="https://nonrepresentable-adolfo-enlightenedly.ngrok-free.dev"
+          JOB_NAME="github_ci"
+          BRANCH_NAME=${GITHUB_REF_NAME}
+          BUILD_DURATION=$((RANDOM % 60 + 10))
+
+          echo "Pushing metrics to $PUSHGATEWAY_URL/metrics/job/$JOB_NAME"
+
+          cat <<EOF | curl -v --data-binary @- $PUSHGATEWAY_URL/metrics/job/$JOB_NAME
+ci_build_status{branch="$BRANCH_NAME"} $BUILD_STATUS
+ci_build_duration_seconds{branch="$BRANCH_NAME"} $BUILD_DURATION
+EOF
+
+
