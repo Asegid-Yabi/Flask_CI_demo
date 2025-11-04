@@ -57,8 +57,8 @@ jobs:
           echo "Pushing metrics to $PUSHGATEWAY_URL/metrics/job/$JOB_NAME"
 
           cat <<EOF | curl -v --data-binary @- $PUSHGATEWAY_URL/metrics/job/$JOB_NAME
-ci_build_status{branch="$BRANCH_NAME"} $BUILD_STATUS
-ci_build_duration_seconds{branch="$BRANCH_NAME"} $BUILD_DURATION
-EOF
+          ci_build_status{branch="$BRANCH_NAME"} $BUILD_STATUS
+          ci_build_duration_seconds{branch="$BRANCH_NAME"} $BUILD_DURATION
+          EOF
 
 
